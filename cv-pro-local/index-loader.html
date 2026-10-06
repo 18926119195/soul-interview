@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>动态简历 — CV Pro 本地版（外部数据）</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Noto+Serif+SC:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --font-en: "Montserrat", system-ui, -apple-system, sans-serif;
+      --font-cn: "Noto Serif SC", "Songti SC", "宋体", serif;
+      --font-mono: "JetBrains Mono", ui-monospace, monospace;
+      --ink-900:#18181b; --ink-700:#3f3f46; --ink-600:#52525b; --ink-500:#71717a;
+      --ink-400:#a1a1aa; --ink-300:#d4d4d8; --ink-200:#e4e4e7; --ink-100:#f4f4f5; --ink-50:#fafafa;
+      --emerald-700:#047857; --violet-700:#6d28d9; --amber-600:#d97706;
+      --max-width: 48rem;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin:0; color:var(--ink-900); background:#fff;
+      font-family:var(--font-en);
+      -webkit-font-smoothing:antialiased; line-height:1.5;
+    }
+    a { color:inherit; text-decoration:none; }
+    a:hover { text-decoration:underline; text-underline-offset:4px; }
+
+    .view-toggle { position:fixed; left:1.5rem; top:1.5rem; z-index:50;
+      display:flex; align-items:baseline; gap:0.5rem; font-size:11px;
+      text-transform:uppercase; letter-spacing:0.2em; color:var(--ink-400); }
+    .view-toggle a { cursor:pointer; }
+    .view-toggle a:hover { color:var(--ink-700); }
+    .view-toggle a.active { color:var(--ink-900); font-weight:500; }
+    .view-toggle .sep { color:var(--ink-300); }
+
+    .toolbar { position:fixed; right:1.5rem; top:1.5rem; z-index:50;
+      display:flex; align-items:center; gap:1rem; font-size:11px;
+      text-transform:uppercase; letter-spacing:0.2em; color:var(--ink-400); }
+    .toolbar button, .toolbar a { display:inline-flex; align-items:center; gap:0.375rem;
+      cursor:pointer; background:none; border:0; padding:0; font:inherit; color:inherit;
+      text-transform:inherit; letter-spacing:inherit; transition:color 150ms ease; }
+    .toolbar button:hover, .toolbar a:hover { color:var(--ink-900); }
+    .toolbar svg { height:14px; width:14px; }
+
+    main.resume { max-width:var(--max-width); margin:0 auto; padding:4rem 2.5rem; }
+    main.json-view { max-width:var(--max-width); margin:0 auto; padding:6rem 2.5rem 4rem; }
+
+    .resume-header h1 { font-family:var(--font-en); font-weight:700; text-align:center;
+      font-size:3rem; letter-spacing:-0.025em; margin:0; line-height:1.1; }
+    .resume-header.is-cjk h1 { font-family:var(--font-cn); }
+
+    .header-links { margin-top:1.25rem; display:flex; flex-wrap:wrap; align-items:center;
+      justify-content:center; column-gap:1.25rem; row-gap:0.25rem; font-size:13px; color:var(--ink-600); }
+    .header-links .link-group { display:inline-flex; align-items:center; column-gap:1.25rem; }
+    .header-links .link-sep { color:var(--ink-300); user-select:none; }
+    .header-links a:hover { color:var(--ink-900); }
+
+    hr.divider { margin:1.5rem 0 2rem; border:0; border-top:1px solid var(--ink-200); }
+
+    section.cv-section { margin-bottom:2.5rem; }
+    section.cv-section h2 { font-family:var(--font-en); font-weight:700; font-size:1.875rem;
+      letter-spacing:-0.01em; margin:0 0 1rem; page-break-after:avoid; break-after:avoid; }
+    section.cv-section h2.italic { font-style:italic; }
+    section.cv-section.is-cjk h2 { font-family:var(--font-cn); }
+
+    .entry { page-break-inside:avoid; break-inside:avoid; margin-bottom:1.25rem; }
+    .entry:last-child { margin-bottom:0; }
+    .entry-head { display:flex; align-items:baseline; justify-content:space-between; gap:1rem; }
+    .entry-title { font-size:14px; display:flex; flex-wrap:wrap; align-items:baseline; column-gap:1rem; row-gap:0.125rem; }
+    .entry-title .title-main { font-weight:600; }
+    .entry-title .title-aside { font-size:13px; color:var(--ink-500); }
+    .entry-title .title-main.is-cjk, .entry-title .title-aside.is-cjk { font-family:var(--font-cn); }
+    .entry-date { flex-shrink:0; font-size:13px; font-feature-settings:"tnum"; color:var(--ink-500); white-space:nowrap; }
+    .entry-subtitle { margin-top:0.125rem; font-size:13px; color:var(--ink-600); }
+
+    .bullets { margin:0.375rem 0 0; padding:0; list-style:none; font-size:13px; color:var(--ink-700); }
+    .bullets li { display:flex; gap:0.625rem; line-height:1.6; }
+    .bullets .dot { flex-shrink:0; color:var(--ink-500); user-select:none; }
+
+    .skills-grid { display:grid; grid-template-columns:repeat(1, minmax(0, 1fr));
+      column-gap:3rem; row-gap:1rem; }
+    @media (min-width:640px) { .skills-grid { grid-template-columns:repeat(2, minmax(0, 1fr)); } }
+    .skill-cat { page-break-inside:avoid; break-inside:avoid; font-size:13px; line-height:1.6; }
+    .skill-cat .cat-name { font-weight:600; }
+    .skill-cat .cat-items { color:var(--ink-700); }
+
+    .json-intro { margin:0 0 1rem; font-size:13px; line-height:1.6; color:var(--ink-500); }
+    .json-intro code { font-family:var(--font-mono); background:var(--ink-100);
+      padding:0.125rem 0.375rem; border-radius:4px; font-size:12px; color:var(--ink-700); }
+    .json-block { position:relative; }
+    .json-block .copy-btn { position:absolute; right:0.75rem; top:0.75rem; z-index:5;
+      padding:0.25rem 0.625rem; border:1px solid var(--ink-200); background:#fff;
+      border-radius:6px; font-size:10px; text-transform:uppercase; letter-spacing:0.15em;
+      color:var(--ink-500); cursor:pointer; transition:all 150ms ease; }
+    .json-block .copy-btn:hover { border-color:var(--ink-300); color:var(--ink-900); }
+    .json-block pre { overflow-x:auto; margin:0; padding:1.25rem; padding-right:5rem;
+      background:var(--ink-50); border-radius:6px; font-family:var(--font-mono);
+      font-size:12px; line-height:1.7; }
+    .json-block .tok-key{color:var(--ink-900);font-weight:600;}
+    .json-block .tok-str{color:var(--emerald-700);}
+    .json-block .tok-bool{color:var(--violet-700);}
+    .json-block .tok-num{color:var(--amber-600);}
+    .json-block .tok-punc{color:var(--ink-400);}
+
+    .resume-footer { margin-top:4rem; padding-top:1rem; border-top:1px solid var(--ink-200);
+      font-size:12px; color:var(--ink-400); }
+    .resume-footer b { color:var(--ink-700); font-weight:500; }
+    .hint { max-width:var(--max-width); margin:1rem auto 0; padding:0.75rem 1.5rem;
+      font-size:12px; color:var(--ink-500); text-align:center; }
+    .hint code { font-family:var(--font-mono); background:var(--ink-100);
+      padding:0.05rem 0.35rem; border-radius:4px; color:var(--ink-700); font-size:11px; }
+
+    .error-box { max-width:32rem; margin:6rem auto; padding:1.5rem;
+      border:1px solid #fecaca; background:#fef2f2; border-radius:8px; color:#991b1b; }
+    .error-box h2 { margin:0 0 0.5rem; font-size:18px; font-weight:600; }
+    .error-box p { margin:0; font-size:14px; line-height:1.6; }
+    .error-box code { font-family:var(--font-mono); background:#fee2e2;
+      padding:0.05rem 0.35rem; border-radius:4px; }
+    .error-box ul { margin:0.5rem 0 0; padding-left:1.5rem; font-size:13px; }
+    .hidden { display:none !important; }
+
+    @media print {
+      @page { margin:14mm 16mm; }
+      .view-toggle, .toolbar, .resume-footer, .hint { display:none !important; }
+      body { font-size:11px; }
+      main.resume { max-width:100%; padding:0 !important; }
+      .resume-header h1 { font-size:1.5rem !important; letter-spacing:0 !important; }
+      .header-links { margin-top:0.375rem !important; font-size:10px !important; }
+      hr.divider { margin:0.5rem 0 0.75rem !important; }
+      section.cv-section { margin-bottom:1rem !important; page-break-inside:avoid; }
+      section.cv-section h2 { font-size:1.05rem !important; margin-bottom:0.25rem !important; }
+      .entry { margin-bottom:0.5rem !important; }
+      .entry-title { font-size:11px !important; }
+      .entry-title .title-aside { font-size:10px !important; }
+      .entry-date { font-size:10px !important; }
+      .entry-subtitle { font-size:10px !important; }
+      .bullets { margin-top:0 !important; font-size:10px !important; }
+      .bullets li { line-height:1.3 !important; }
+      .bullets li > span:last-child { line-height:1.3 !important; }
+      .skill-cat { font-size:10px !important; line-height:1.3 !important; }
+      .skills-grid { row-gap:0.25rem !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="view-toggle" id="viewToggle" aria-label="View toggle">
+    <a data-view="human" class="active" onclick="setView('human')">for human</a>
+    <span class="sep" aria-hidden>/</span>
+    <a data-view="agent" onclick="setView('agent')">for agent</a>
+  </nav>
+
+  <div class="toolbar" id="toolbar">
+    <a id="downloadTxt" download aria-label="Download as plain text">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden>
+        <path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/>
+      </svg>
+      TXT
+    </a>
+    <button type="button" onclick="window.print()" aria-label="Download as PDF">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden>
+        <path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/>
+      </svg>
+      PDF
+    </button>
+  </div>
+
+  <div id="app"></div>
+
+  <script>
+    "use strict";
+
+    // === 工具函数（与 index.html 保持一致）===
+    const CJK_RE = /[\u3400-\u9fff\uf900-\ufaff]/;
+    const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+    function escapeHtml(s){return String(s??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");}
+    function isCJKString(s){return CJK_RE.test(String(s??""));}
+    function prettyUrl(u){return String(u).replace(/^https?:\/\//,"").replace(/\/$/,"");}
+    function formatMonth(v){const m=/^(\d{4})-(\d{2})/.exec(String(v??"")); if(!m)return String(v??""); const i=parseInt(m[2],10)-1; if(i<0||i>11)return String(v??""); return `${MONTHS[i]} ${m[1]}`;}
+    function isFuture(v){const m=/^(\d{4})-(\d{2})/.exec(String(v??"")); if(!m)return false; const t=parseInt(m[1],10)*12+parseInt(m[2],10)-1; const n=new Date(); return t>n.getFullYear()*12+n.getMonth();}
+    function formatRange(s,e){const a=formatMonth(s); const b=e?(isFuture(e)?`Expected ${formatMonth(e)}`:formatMonth(e)):""; if(!a&&!b)return""; if(!a)return b||"Present"; if(!b)return`${a} — Present`; return`${a} — ${b}`;}
+    function dedupeDegree(d,m){if(!m)return d; if(!d)return m; if(String(d).toLowerCase().includes(String(m).toLowerCase()))return d; return`${d}, ${m}`;}
+
+    function highlightJson(json){
+      const re=/("(?:[^"\\]|\\.)*"\s*:)|("(?:[^"\\]|\\.)*")|(\b(?:true|false|null)\b)|(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)|([{}[\],])/g;
+      let out="",last=0,m;
+      while((m=re.exec(json))!==null){
+        if(m.index>last)out+=escapeHtml(json.slice(last,m.index));
+        let c="";
+        if(m[1])c="tok-key"; else if(m[2])c="tok-str"; else if(m[3])c="tok-bool"; else if(m[4])c="tok-num"; else if(m[5])c="tok-punc";
+        out+=`<span class="${c}">${escapeHtml(m[0])}</span>`;
+        last=re.lastIndex;
+      }
+      if(last<json.length)out+=escapeHtml(json.slice(last));
+      return out;
+    }
+
+    function renderHuman(d){
+      const isCJK = CJK_RE.test(JSON.stringify(d));
+      const links=[];
+      if(d.personalInfo?.phone) links.push({label:d.personalInfo.phone, href:`tel:${d.personalInfo.phone}`});
+      if(d.personalInfo?.email) links.push({label:d.personalInfo.email, href:`mailto:${d.personalInfo.email}`});
+      for(const c of (d.contact||[])) links.push({label:prettyUrl(c.url), href:c.url});
+      const linksHtml = links.map((l,i)=>{
+        const sep = i>0?`<span class="link-sep" aria-hidden>|</span>`:"";
+        const inner = l.href?`<a href="${escapeHtml(l.href)}" class="${isCJKString(l.label)?"is-cjk":""}">${escapeHtml(l.label)}</a>`:`<span class="${isCJKString(l.label)?"is-cjk":""}">${escapeHtml(l.label)}</span>`;
+        return `<span class="link-group">${sep}${inner}</span>`;
+      }).join("");
+
+      const edu = (d.education||[]).map(e=>`
+        <div class="entry"><div class="entry-head"><div class="entry-title">
+          <span class="title-main ${isCJKString(e.school)?"is-cjk":""}">${escapeHtml(e.school)}</span>
+        </div><div class="entry-date">${escapeHtml(formatRange(e.startDate,e.endDate))}</div></div>
+        <div class="entry-subtitle ${isCJKString(dedupeDegree(e.degree,e.major))?"is-cjk":""}">${escapeHtml(dedupeDegree(e.degree,e.major))}</div></div>`).join("");
+
+      const exp = (d.experience||[]).map(j=>`
+        <div class="entry"><div class="entry-head"><div class="entry-title">
+          <span class="title-main ${isCJKString(j.company)?"is-cjk":""}">${escapeHtml(j.company)}</span>
+          <span class="title-aside ${isCJKString(j.role)?"is-cjk":""}">${escapeHtml(j.role)}</span>
+        </div><div class="entry-date">${escapeHtml(formatRange(j.startDate,j.endDate))}</div></div>
+        ${(j.bullets||[]).length?`<ul class="bullets">${j.bullets.map(b=>`<li><span class="dot" aria-hidden>•</span><span class="${isCJKString(b)?"is-cjk":""}">${escapeHtml(b)}</span></li>`).join("")}</ul>`:""}</div>`).join("");
+
+      const pd = (d.projectsDetailed||[]).map(p=>`
+        <div class="entry"><div class="entry-head"><div class="entry-title">
+          ${p.url?`<a href="${escapeHtml(p.url)}" target="_blank" rel="noopener noreferrer" class="title-main ${isCJKString(p.title)?"is-cjk":""}">${escapeHtml(p.title)}</a>`:`<span class="title-main ${isCJKString(p.title)?"is-cjk":""}">${escapeHtml(p.title)}</span>`}
+          ${p.type?`<span class="title-aside ${isCJKString(p.type)?"is-cjk":""}">${escapeHtml(p.type)}</span>`:""}
+        </div><div class="entry-date">${escapeHtml(p.endDate?formatRange(p.startDate,p.endDate):formatMonth(p.startDate))}</div></div>
+        ${p.award?`<div class="entry-subtitle ${isCJKString(p.award)?"is-cjk":""}">${escapeHtml(p.award)}</div>`:""}
+        ${(p.bullets||[]).length?`<ul class="bullets">${p.bullets.map(b=>`<li><span class="dot" aria-hidden>•</span><span class="${isCJKString(b)?"is-cjk":""}">${escapeHtml(b)}</span></li>`).join("")}</ul>`:""}</div>`).join("");
+
+      const pr = (d.projectsRecent||[]).map(p=>`
+        <div class="entry"><div class="entry-head"><div class="entry-title">
+          ${p.url?`<a href="${escapeHtml(p.url)}" target="_blank" rel="noopener noreferrer" class="title-main ${isCJKString(p.title)?"is-cjk":""}">${escapeHtml(p.title)}</a>`:`<span class="title-main ${isCJKString(p.title)?"is-cjk":""}">${escapeHtml(p.title)}</span>`}
+        </div></div>${p.description?`<div class="entry-subtitle ${isCJKString(p.description)?"is-cjk":""}">${escapeHtml(p.description)}</div>`:""}</div>`).join("");
+
+      const sk = (d.skills||[]).map(cat=>`<div class="skill-cat"><div class="cat-name ${isCJKString(cat.name)?"is-cjk":""}">${escapeHtml(cat.name)}:</div><div class="cat-items ${cat.items.some(isCJKString)?"is-cjk":""}">${escapeHtml(cat.items.join(", "))}</div></div>`).join("");
+
+      return `
+        <main class="resume">
+          <header class="resume-header ${isCJK?"is-cjk":""}">
+            <h1>${escapeHtml(d.header.name)}</h1>
+            ${links.length?`<div class="header-links">${linksHtml}</div>`:""}
+          </header>
+          <hr class="divider" />
+          ${(d.education||[]).length?`<section class="cv-section ${isCJK?"is-cjk":""}"><h2 class="${isCJK?"italic":""}">Education</h2>${edu}</section>`:""}
+          ${(d.experience||[]).length?`<section class="cv-section ${isCJK?"is-cjk":""}"><h2 class="${isCJK?"italic":""}">Experience</h2>${exp}</section>`:""}
+          ${((d.projectsDetailed||[]).length||(d.projectsRecent||[]).length)?`<section class="cv-section ${isCJK?"is-cjk":""}"><h2 class="${isCJK?"italic":""}">Projects</h2>${pd}${pr}</section>`:""}
+          ${(d.skills||[]).length?`<section class="cv-section ${isCJK?"is-cjk":""}"><h2 class="${isCJK?"italic":""}">Skills</h2><div class="skills-grid">${sk}</div></section>`:""}
+          <footer class="resume-footer">
+            cv-pro-local · agent tip: click <b>for agent</b> to view JSON · updated ${escapeHtml(new Date(d.meta?.updatedAt||Date.now()).toLocaleDateString())}
+          </footer>
+        </main>`;
+    }
+
+    function renderAgent(d){
+      const json = JSON.stringify(d,null,2);
+      return `<main class="json-view"><p class="json-intro">机器可读简历 —— 由 <code>resume.json</code> 驱动，<b>不要</b>直接编辑 HTML。</p><div class="json-block"><button class="copy-btn" onclick="copyJSON()">Copy</button><pre>${highlightJson(json)}</pre></div></main>`;
+    }
+
+    function makeTxt(d){
+      const lines=[];
+      lines.push(d.header.name); lines.push("=".repeat(d.header.name.length));
+      if(d.personalInfo?.email)lines.push(`Email: ${d.personalInfo.email}`);
+      if(d.personalInfo?.phone)lines.push(`Phone: ${d.personalInfo.phone}`);
+      if(d.personalInfo?.location)lines.push(`Location: ${d.personalInfo.location}`);
+      for(const c of(d.contact||[]))lines.push(`${c.label}: ${c.url}`);
+      lines.push("");
+      if((d.education||[]).length){lines.push("EDUCATION");lines.push("---------");for(const e of d.education){lines.push(`${e.school}  ${formatRange(e.startDate,e.endDate)}`);lines.push(`  ${dedupeDegree(e.degree,e.major)}`);}lines.push("");}
+      if((d.experience||[]).length){lines.push("EXPERIENCE");lines.push("----------");for(const j of d.experience){lines.push(`${j.company} — ${j.role}  ${formatRange(j.startDate,j.endDate)}`);for(const b of j.bullets||[])lines.push(`  • ${b}`);}lines.push("");}
+      if((d.projectsDetailed||[]).length){lines.push("PROJECTS");lines.push("--------");for(const p of d.projectsDetailed){lines.push(`${p.title} (${p.type})  ${p.endDate?formatRange(p.startDate,p.endDate):formatMonth(p.startDate)}`);if(p.url)lines.push(`  ${p.url}`);if(p.award)lines.push(`  Award: ${p.award}`);for(const b of p.bullets||[])lines.push(`  • ${b}`);}lines.push("");}
+      if((d.projectsRecent||[]).length){for(const p of d.projectsRecent){lines.push(p.title);if(p.url)lines.push(`  ${p.url}`);if(p.description)lines.push(`  ${p.description}`);}lines.push("");}
+      if((d.skills||[]).length){lines.push("SKILLS");lines.push("------");for(const c of d.skills)lines.push(`${c.name}: ${c.items.join(", ")}`);}
+      return lines.join("\n");
+    }
+
+    let currentData = null;
+    let currentView = "human";
+
+    function setView(v){
+      currentView = v;
+      const app = document.getElementById("app");
+      app.innerHTML = v==="human" ? renderHuman(currentData) : renderAgent(currentData);
+      document.querySelectorAll(".view-toggle a").forEach(a => a.classList.toggle("active", a.dataset.view===v));
+      document.getElementById("toolbar").classList.toggle("hidden", v!=="human");
+      if(v==="human"){
+        const blob = new Blob([makeTxt(currentData)], {type:"text/plain;charset=utf-8"});
+        document.getElementById("downloadTxt").href = URL.createObjectURL(blob);
+        document.getElementById("downloadTxt").download = `${currentData.username||"resume"}.txt`;
+      }
+    }
+
+    async function copyJSON(){
+      const btn = document.querySelector(".copy-btn");
+      try { await navigator.clipboard.writeText(JSON.stringify(currentData,null,2)); btn.textContent="Copied"; }
+      catch(e){ btn.textContent="Failed"; }
+      setTimeout(()=>btn.textContent="Copy", 1800);
+    }
+
+    function showError(errs){
+      document.getElementById("app").innerHTML = `<div class="error-box"><h2>加载失败</h2><p>${escapeHtml(errs)}</p><p style="margin-top:.75rem">确认 <code>resume.json</code> 与 <code>index.html</code> 在同一目录，然后用本地 HTTP 服务打开（不能直接 file://）。</p></div>`;
+      document.getElementById("viewToggle").style.display="none";
+      document.getElementById("toolbar").style.display="none";
+    }
+
+    async function boot(){
+      try {
+        const res = await fetch("resume.json", {cache:"no-store"});
+        if(!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        if(!data?.header?.name) throw new Error("resume.json 缺少 header.name");
+        currentData = data;
+        setView("human");
+      } catch(e) {
+        showError(e.message || String(e));
+      }
+    }
+
+    boot();
+  </script>
+</body>
+</html>
