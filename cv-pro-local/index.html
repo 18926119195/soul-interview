@@ -1,0 +1,445 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>动态简历 CV Pro 本地版</title>
+  <meta name="description" content="基于 cv-pro 设计的本地动态简历：单页、打印优化、中英双语智能切换，同时支持人类视图/JSON/agent 视图。" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Noto+Serif+SC:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --font-en: "Montserrat", system-ui, -apple-system, sans-serif;
+      --font-cn: "Noto Serif SC", "Songti SC", "宋体", serif;
+      --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+      --ink-900: #18181b;
+      --ink-700: #3f3f46;
+      --ink-600: #52525b;
+      --ink-500: #71717a;
+      --ink-400: #a1a1aa;
+      --ink-300: #d4d4d8;
+      --ink-200: #e4e4e7;
+      --ink-100: #f4f4f5;
+      --ink-50:  #fafafa;
+
+      --emerald-700: #047857;
+      --violet-700:  #6d28d9;
+      --amber-600:  #d97706;
+
+      --max-width: 48rem;
+    }
+
+    * { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      margin: 0;
+      color: var(--ink-900);
+      background: #ffffff;
+      font-family: var(--font-en);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      line-height: 1.5;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    a:hover { text-decoration: underline; text-underline-offset: 4px; }
+
+    main {
+      max-width: var(--max-width);
+      margin: 0 auto;
+      padding: 4rem 2.5rem 4rem;
+    }
+
+    /* ===== Header ===== */
+    .resume-header h1 {
+      font-family: var(--font-en);
+      font-weight: 700;
+      text-align: center;
+      font-size: 3rem;
+      letter-spacing: -0.025em;
+      margin: 0;
+      line-height: 1.1;
+    }
+
+    .header-tagline {
+      margin-top: 0.5rem;
+      text-align: center;
+      font-size: 1rem;
+      color: var(--ink-500);
+      font-family: var(--font-cn);
+    }
+
+    .header-links {
+      margin-top: 1.25rem;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      column-gap: 1.25rem;
+      row-gap: 0.25rem;
+      font-size: 13px;
+      color: var(--ink-600);
+    }
+    .header-links .link-sep {
+      color: var(--ink-300);
+      user-select: none;
+    }
+
+    hr.divider {
+      margin: 1.5rem 0 2rem;
+      border: 0;
+      border-top: 1px solid var(--ink-200);
+    }
+
+    /* ===== Section ===== */
+    section { margin-bottom: 2.5rem; }
+    section h2 {
+      font-family: var(--font-en);
+      font-weight: 700;
+      font-size: 1.875rem;
+      letter-spacing: -0.01em;
+      margin: 0 0 1rem;
+    }
+    section h2.is-cn {
+      font-family: var(--font-cn);
+    }
+
+    /* ===== Entry ===== */
+    .entry { margin-bottom: 1.25rem; }
+    .entry:last-child { margin-bottom: 0; }
+
+    .entry-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    .entry-title {
+      font-size: 14px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      column-gap: 1rem;
+      row-gap: 0.125rem;
+    }
+    .entry-title .title-main { font-weight: 600; }
+    .entry-title .title-aside {
+      font-size: 13px;
+      color: var(--ink-500);
+    }
+    .entry-date {
+      flex-shrink: 0;
+      font-size: 13px;
+      color: var(--ink-500);
+    }
+    .entry-subtitle {
+      margin-top: 0.125rem;
+      font-size: 13px;
+      color: var(--ink-600);
+      font-family: var(--font-cn);
+    }
+
+    .bullets {
+      margin: 0.375rem 0 0;
+      padding: 0;
+      list-style: none;
+      font-size: 13px;
+      color: var(--ink-700);
+    }
+    .bullets li {
+      display: flex;
+      gap: 0.625rem;
+      line-height: 1.6;
+    }
+    .bullets .dot {
+      flex-shrink: 0;
+      color: var(--ink-500);
+    }
+
+    /* ===== Tags ===== */
+    .entry-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.375rem;
+      margin-top: 0.375rem;
+    }
+    .tag {
+      font-size: 11px;
+      padding: 0.125rem 0.5rem;
+      border: 1px solid var(--ink-200);
+      border-radius: 9999px;
+      color: var(--ink-500);
+      font-family: var(--font-en);
+    }
+
+    /* ===== Skills ===== */
+    .skills-grid {
+      display: grid;
+      grid-template-columns: repeat(1, minmax(0, 1fr));
+      column-gap: 3rem;
+      row-gap: 1rem;
+    }
+    @media (min-width: 640px) {
+      .skills-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    .skill-cat {
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    .skill-cat .cat-name { font-weight: 600; }
+    .skill-cat .cat-items { color: var(--ink-700); }
+
+    /* ===== Notes ===== */
+    .entry-notes {
+      margin-top: 0.25rem;
+      font-size: 12px;
+      color: var(--ink-400);
+      font-family: var(--font-cn);
+    }
+
+    /* ===== Footer ===== */
+    footer {
+      margin-top: 4rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--ink-200);
+      font-size: 12px;
+      color: var(--ink-400);
+    }
+    footer a { color: var(--ink-500); }
+    footer a:hover { color: var(--ink-700); }
+
+    /* ===== Print ===== */
+    @media print {
+      body { font-size: 12px; }
+      main { padding: 2rem 1.5rem; }
+      section h2 { font-size: 1.5rem; }
+      .resume-header h1 { font-size: 2rem; }
+    }
+  </style>
+</head>
+<body>
+
+<main>
+  <!-- ========== Header ========== -->
+  <header class="resume-header">
+    <h1>丘越</h1>
+    <div class="header-tagline">灵魂心理学 x AI 工程 / 非线性自创生</div>
+    <div class="header-links">
+      <a href="mailto:963922414@qq.com">963922414@qq.com</a>
+      <span class="link-sep">|</span>
+      <a href="tel:+8618926119195">+86 18926119195</a>
+      <span class="link-sep">|</span>
+      <span>广东广州 / 浙江杭州</span>
+      <span class="link-sep">|</span>
+      <a href="https://autobio-web-ivory.vercel.app" target="_blank">Demo</a>
+    </div>
+  </header>
+
+  <hr class="divider" />
+
+  <!-- ========== Education ========== -->
+  <section>
+    <h2 class="is-cn">Education</h2>
+
+    <div class="entry">
+      <div class="entry-head">
+        <div class="entry-title">
+          <span class="title-main is-cn">韶关学院</span>
+          <span class="title-aside is-cn">法学 · Bachelor</span>
+        </div>
+        <div class="entry-date">2021.09 – 2025.06</div>
+      </div>
+      <div class="entry-notes">全日制本科，毕业论文方向：劳动法 + 精神分析 + AI 背景下的劳动异化</div>
+    </div>
+  </section>
+
+  <!-- ========== Experience ========== -->
+  <section>
+    <h2 class="is-cn">Experience</h2>
+
+    <div class="entry">
+      <div class="entry-head">
+        <div class="entry-title">
+          <span class="title-main is-cn">独立研究者 / autobio-web 创始人</span>
+          <span class="title-aside is-cn">全栈研发 + 方法论沉淀</span>
+        </div>
+        <div class="entry-date">2025.07 – 至今</div>
+      </div>
+      <ul class="bullets">
+        <li><span class="dot">·</span>搭建并部署 autobio-web（Next.js 14 App Router + TypeScript + Dify + Cloudflare Tunnel + Vercel + SiliconFlow），已上线 <a href="https://autobio-web-ivory.vercel.app" target="_blank">autobio-web-ivory.vercel.app</a></li>
+        <li><span class="dot">·</span>自建 544 道非线性访谈问题库（每题配 2 套故事）与 17 个提问技法库，覆盖 50+ 真实历史人物案例</li>
+        <li><span class="dot">·</span>以希尔曼+加塔利+斯特恩为方法论底座，沉淀约 12 万字研究笔记（p1.txt ~ p40.txt），把哲学命题工程化为 Dify 高级工作流 + 质感仪表盘</li>
+        <li><span class="dot">·</span>验证三条业务线：人生回忆录项目管理 / 海外 25+ 女性 AI 虚拟陪伴 / 银发兴趣社群 AI 销转</li>
+      </ul>
+      <div class="entry-tags">
+        <span class="tag">Next.js</span>
+        <span class="tag">TypeScript</span>
+        <span class="tag">Dify</span>
+        <span class="tag">灵魂心理学</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== Projects ========== -->
+  <section>
+    <h2 class="is-cn">Projects</h2>
+
+    <div class="entry">
+      <div class="entry-head">
+        <div class="entry-title">
+          <span class="title-main is-cn">autobio-web · 非线性自传平台</span>
+          <span class="title-aside">独立项目（已上线）</span>
+        </div>
+        <div class="entry-date">2025.07 – 至今</div>
+      </div>
+      <ul class="bullets">
+        <li><span class="dot">·</span>已上线 demo：访问密码 a30436fc48c1858f40e6f0a86e960d88，链接 <a href="https://autobio-web-ivory.vercel.app" target="_blank">https://autobio-web-ivory.vercel.app</a></li>
+        <li><span class="dot">·</span>核心架构：4 隧道 x 2 阶段灵魂地图 3D 视图（ModuleGraph.tsx + Three.js）+ 灵魂同行者星座 + 多 PDF 跨页绳索</li>
+        <li><span class="dot">·</span>对话层：Dify 高级工作流（非线性自传创作.yml，含校验节点、Python 脚本、父子分段索引）+ 多模态 OCR（GLM-4V + tesseract.js）+ 语音/PDF（pdfjs-dist）</li>
+        <li><span class="dot">·</span>后端：Next.js API Routes（Edge Functions）+ Dify REST API 客户端 + 飞书 webhook 反馈信箱</li>
+        <li><span class="dot">·</span>部署：Vercel（前端）+ Cloudflare Tunnel（内网穿透）+ 本机 Docker 跑 Dify，对话数据绝不回流到公网模型微调</li>
+      </ul>
+    </div>
+
+    <div class="entry">
+      <div class="entry-head">
+        <div class="entry-title">
+          <span class="title-main is-cn">544 道访谈问题库 + 17 个提问技法 + 50+ 灵魂同行者案例库</span>
+          <span class="title-aside">知识工程</span>
+        </div>
+        <div class="entry-date">2025.07 – 至今</div>
+      </div>
+      <ul class="bullets">
+        <li><span class="dot">·</span>从 40 页约 12 万字研究笔记（p1.txt ~ p40.txt）中，按希尔曼「召唤/calling」+ 加塔利「分裂分析制图」+ 斯特恩「生命形式 forms of vitality」三道筛子配对成 544 道问题 x 2 套故事</li>
+        <li><span class="dot">·</span>17 个提问技法：去字面化 / 联觉感知 / 特定化名词 / 动词副词倒置 / 拒绝还原 / 多神论还原 / 显圣式感知 / 增厚法 / 渴望法 / 裂隙法 / 嗅觉类比 等</li>
+        <li><span class="dot">·</span>50+ 真实历史人物同行者：梅纽因 / 卡内蒂 / 麦克林托克 / 马诺雷特 / 卡什 / 柯林伍德 / 戈尔达 / 波洛克 / 奥普拉 / 里夫 等</li>
+        <li><span class="dot">·</span>两套切片：灵魂的密码案例 + A Life at Work 名人案例，已按 Dify 父子分段规则（父块 1200 / 子块 512 / 子块 4 行）配置</li>
+      </ul>
+    </div>
+
+    <div class="entry">
+      <div class="entry-head">
+        <div class="entry-title">
+          <span class="title-main is-cn">质感仪表盘 · 强度评分（Pathique / 情动即生产力）</span>
+          <span class="title-aside">Dify 工作流中间件</span>
+        </div>
+        <div class="entry-date">2025.07 – 至今</div>
+      </div>
+      <ul class="bullets">
+        <li><span class="dot">·</span>工程化定义质感：形容词/副词密度 + 身体感觉词密度 + 关键意象反复度，复合函数输出 0-100 强度评分</li>
+        <li><span class="dot">·</span>Dify Python 校验节点三层标注：(1) 形容词/副词密度（健康>=25%）(2) 身体感觉词密度（健康>=15%）(3) 关键意象反复（>=3次伴随新细节=高强度）</li>
+        <li><span class="dot">·</span>强度 0-30 触发刺激性提问；强度>=70 主动让对话慢下来</li>
+        <li><span class="dot">·</span>直接对接希尔曼 daimon 召唤 + 加塔利「情动即生产力」（p22：「以分裂分析制图术以及超文本的概念在一个立体空间中实现剪辑流」）</li>
+      </ul>
+    </div>
+
+    <div class="entry">
+      <div class="entry-head">
+        <div class="entry-title">
+          <span class="title-main is-cn">传记库 + 同行者 AI 匹配 + 相互修改</span>
+          <span class="title-aside">产品形态设计</span>
+        </div>
+        <div class="entry-date">2026.08 – 至今</div>
+      </div>
+      <ul class="bullets">
+        <li><span class="dot">·</span>三层结构：叙事层（全文+关键瞬间标注）+ 结构层（主题块茎+同行者+质感形容词库）+ 关系层（多传记共鸣链接）</li>
+        <li><span class="dot">·</span>AI 匹配：下一个客户进入访谈时，AI 匹配传记库里已有的相似主题/同行者/质感瞬间</li>
+        <li><span class="dot">·</span>相互修改：后辈的访谈经验可反过来修订前辈传记——复调主体性（加塔利）的产品化</li>
+        <li><span class="dot">·</span>让回忆录业务从「一次性高客单价」变成「持续沉淀的复调业务」</li>
+      </ul>
+    </div>
+
+    <!-- Projects Recent -->
+    <div class="entry">
+      <div class="entry-head">
+        <div class="entry-title">
+          <span class="title-main is-cn">研究历程 v1-v4</span>
+          <span class="title-aside">方法论文档</span>
+        </div>
+      </div>
+      <div class="entry-subtitle">面向回忆录项目经理 / AI 销转研发工程师双岗的 4 轮迭代研究文档，覆盖 8 个底层命题 x 9 个岗位子问题 x 12 个自我对抗性追问</div>
+    </div>
+
+    <div class="entry">
+      <div class="entry-head">
+        <div class="entry-title">
+          <span class="title-main is-cn">10 人设计伙伴 PMF 验证计划</span>
+          <span class="title-aside">运营文档</span>
+        </div>
+      </div>
+      <div class="entry-subtitle">4 周验证计划 + 招募话术 + 访谈脚本 + 决策表，目标 7 人打开 / 5 份问卷 / 3 人第二次来</div>
+    </div>
+
+    <div class="entry">
+      <div class="entry-head">
+        <div class="entry-title">
+          <span class="title-main is-cn">72 小时保命清单（卖设备后）</span>
+          <span class="title-aside">SOP</span>
+        </div>
+      </div>
+      <div class="entry-subtitle">把销转场景的紧急场景降级为可执行 SOP</div>
+    </div>
+
+    <div class="entry">
+      <div class="entry-head">
+        <div class="entry-title">
+          <span class="title-main is-cn">Cloudflare Tunnel + Vercel 零 VPS 部署方案</span>
+          <span class="title-aside">DevOps</span>
+        </div>
+      </div>
+      <div class="entry-subtitle">AI 对话数据内网化 + 7x24 在线 + 客户隐私不回流公网模型</div>
+    </div>
+  </section>
+
+  <!-- ========== Skills ========== -->
+  <section>
+    <h2 class="is-cn">Skills</h2>
+    <div class="skills-grid">
+
+      <div class="skill-cat">
+        <div class="cat-name">Frontend</div>
+        <div class="cat-items">Next.js (App Router), TypeScript, React, Tailwind CSS, Three.js, tesseract.js, pdfjs-dist</div>
+      </div>
+
+      <div class="skill-cat">
+        <div class="cat-name">Backend / API</div>
+        <div class="cat-items">Next.js API Routes (Edge), Node.js, Python 校验节点, Dify REST API</div>
+      </div>
+
+      <div class="skill-cat">
+        <div class="cat-name">AI / LLM</div>
+        <div class="cat-items">Dify 高级工作流, SiliconFlow, DeepSeek, GLM-4V (多模态 OCR), Embedding + Reranker, 父子分段索引</div>
+      </div>
+
+      <div class="skill-cat">
+        <div class="cat-name">Infra</div>
+        <div class="cat-items">Vercel, Cloudflare Tunnel, Docker, 飞书 Webhook</div>
+      </div>
+
+      <div class="skill-cat">
+        <div class="cat-name">方法论 / 灵魂心理学</div>
+        <div class="cat-items">James Hillman 召唤/daimon, Felix Guattari 分裂分析制图学, Daniel Stern 生命形式 forms of vitality, Gilles Deleuze 块茎/事件, Jacques Lacan 精神分析, Ilya Prigogine 耗散结构/自组织, Sigmund Freud 爱欲/死亡驱动力</div>
+      </div>
+
+      <div class="skill-cat">
+        <div class="cat-name">内容资产</div>
+        <div class="cat-items">544 道访谈问题（每题 2 套故事）, 17 个提问技法, 50+ 名人灵魂同行者档案, 12 万字研究笔记 (p1-p40)</div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ========== Footer ========== -->
+  <footer>
+    <p>基于 <strong>cv-pro</strong> 本地简历方案 · 数据源 <a href="resume.json">resume.json</a></p>
+    <p>2026-10-06 · 丘越</p>
+  </footer>
+
+</main>
+
+</body>
+</html>
